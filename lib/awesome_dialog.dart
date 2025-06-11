@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:awesome_dialog/src/animated_button.dart';
 import 'package:awesome_dialog/src/anims/native_animations.dart';
 import 'package:awesome_dialog/src/header.dart';
@@ -15,12 +17,12 @@ class AwesomeDialog {
   AwesomeDialog({
     required this.context,
     this.dialogType = DialogType.info,
+    this.descAlign,
     this.customHeader,
     this.title,
     this.titleTextStyle,
     this.desc,
     this.descTextStyle,
-    this.descAlign,
     this.body,
     this.btnOk,
     this.btnCancel,
@@ -47,6 +49,7 @@ class AwesomeDialog {
     this.dialogBorderRadius,
     this.buttonsBorderRadius,
     this.showCloseIcon = false,
+    this.blurEnabled = false,
     this.closeIcon,
     this.dialogBackgroundColor,
     this.borderSide,
@@ -205,6 +208,11 @@ class AwesomeDialog {
   /// Defaults to `15.0`
   final double bodyHeaderDistance;
 
+  /// Sets blur on dialog background
+  ///
+  /// Defaults to 'false'
+  final bool blurEnabled;
+
   /// Used to make Ok button appear First than Cancel.
   ///
   /// Initialized to `false`
@@ -243,7 +251,11 @@ class AwesomeDialog {
               dismiss();
             });
           }
-          return _buildDialog;
+          return BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            enabled: blurEnabled,
+            child: _buildDialog,
+          );
         },
         transitionDuration: transitionAnimationDuration,
         transitionBuilder: (
@@ -254,12 +266,10 @@ class AwesomeDialog {
         ) =>
             _showAnimation(animation, secondaryAnimation, child),
         barrierColor: barrierColor ?? const Color(0x80000000),
-        barrierLabel:
-            MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       )..then<dynamic>(
-          (dynamic value) => _onDismissCallbackCalled
-              ? null
-              : onDismissCallback?.call(_dismissType),
+          (dynamic value) =>
+              _onDismissCallbackCalled ? null : onDismissCallback?.call(_dismissType),
         );
 
   /// Return the header of the dialog
@@ -289,7 +299,6 @@ class AwesomeDialog {
             titleStyle: titleTextStyle,
             desc: desc,
             descStyle: descTextStyle,
-            descAlign: descAlign,
             body: body,
             isDense: isDense,
             alignment: alignment,
@@ -298,8 +307,7 @@ class AwesomeDialog {
             padding: padding ?? const EdgeInsets.only(left: 5, right: 5),
             bodyHeaderDistance: bodyHeaderDistance,
             btnOk: btnOk ?? (btnOkOnPress != null ? _buildFancyButtonOk : null),
-            btnCancel: btnCancel ??
-                (btnCancelOnPress != null ? _buildFancyButtonCancel : null),
+            btnCancel: btnCancel ?? (btnCancelOnPress != null ? _buildFancyButtonCancel : null),
             showCloseIcon: showCloseIcon,
             onClose: () {
               _dismissType = DismissType.topIcon;
